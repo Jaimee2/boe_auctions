@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -42,23 +44,32 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
 
         document.select(".resultado-busqueda").forEach(
                 auctionElement -> {
-
-                    String title = auctionElement.select("h3").text();
-                    String entity = auctionElement.select("h4").text();
-                    String statusAndDate = auctionElement.select("p").first().text();
-                    String[] statusAndDateParts = statusAndDate.split(" - ");
-                    String status = statusAndDateParts[0].replace("Estado: ", "");
-                    String conclusion = statusAndDateParts.length > 1 ? statusAndDateParts[1]
-                            .replace("[Conclusión prevista: ", "")
-                            .replace("]", "") : "No disponible";
-                    String place = auctionElement.select("p").get(1).text();
-
-                    Auction auction = new Auction(title, entity, status, place, conclusion);
-                    auctions.add(auction);
+                    Element linkElement = auctionElement.selectFirst("a.resultado-busqueda-link-defecto");
+                    String auctionUrl = "https://subastas.boe.es" + linkElement.attr("href").substring(1);
+                    try {
+                        scrapeDetailPage(auctionUrl);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
         );
 
         return auctions;
+    }
+
+    private Auction scrapeDetailPage(String url) throws IOException {
+        Document detailDoc = Jsoup.connect(url).get();
+        Elements bienesLinks = detailDoc.select("a[href*='ver=3']");
+        System.out.println(bienesLinks);
+        String auctionUrl = "https://subastas.boe.es" + bienesLinks.attr("href").substring(1);
+        scrapeDetailPageGoods(auctionUrl);
+        return null;
+    }
+
+    private Auction scrapeDetailPageGoods(String url) throws IOException {
+        Document detailDoc = Jsoup.connect(url).get();
+        System.out.println(detailDoc);
+        return null;
     }
 
 }
