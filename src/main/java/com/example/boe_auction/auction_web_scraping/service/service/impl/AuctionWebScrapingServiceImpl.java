@@ -42,33 +42,65 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
 
         List<Auction> auctions = new ArrayList<>();
 
-        document.select(".resultado-busqueda").forEach(
-                auctionElement -> {
-                    Element linkElement = auctionElement.selectFirst("a.resultado-busqueda-link-defecto");
-                    String auctionUrl = "https://subastas.boe.es" + linkElement.attr("href").substring(1);
-                    try {
-                        scrapeDetailPage(auctionUrl);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-        );
+        List<String> auctionDetailLinkList = document.select(".resultado-busqueda")
+                .stream()
+                .map(auctionElement -> getLink(auctionElement
+                        .selectFirst("a.resultado-busqueda-link-defecto").attr("href"))
+                ).toList();
+
+        for (String auctionLink : auctionDetailLinkList) {
+            auctions.add(scrapeDetailPage(auctionLink));
+        }
 
         return auctions;
     }
 
     private Auction scrapeDetailPage(String url) throws IOException {
         Document detailDoc = Jsoup.connect(url).get();
-        Elements bienesLinks = detailDoc.select("a[href*='ver=3']");
-        System.out.println(bienesLinks);
-        String auctionUrl = "https://subastas.boe.es" + bienesLinks.attr("href").substring(1);
+
+        Element dataTable = detailDoc.getElementById("idBloqueDatos1").selectFirst("table tbody");
+
+        Auction.AuctionBuilder auction = Auction.builder();
+
+                auction.identifier(getTextFromTable(dataTable, "Identificador"))
+                .auctionType(getTextFromTable(dataTable, "Tipo de subasta"))
+                .startDate((getTextFromTable(dataTable, "Fecha de inicio").split("\\(ISO")[0].trim()))
+                .endDate((getTextFromTable(dataTable, "Fecha de conclusión").split("\\(ISO")[0].trim()))
+                .lots((getTextFromTable(dataTable, "Lotes")))
+                .announcementBOE((getTextFromTable(dataTable, "Lotes")))
+                .auctionValue(getTextFromTable(dataTable, "Anuncio BOE"))
+                .appraisalValue(getTextFromTable(dataTable, "Valor subasta"))
+                .minimumBid(getTextFromTable(dataTable, "Puja mínima"))
+                .bidIncrement(getTextFromTable(dataTable, "Tramos entre pujas"))
+                .depositAmount(getTextFromTable(dataTable, "Importe del depósito"))
+                .build();
+
+        detailDoc.select("td:contains(Identificador) + td strong").text();
+        Elements linkElement = detailDoc.select("a[href*='ver=3']");
+        String auctionUrl = getLink(linkElement.attr("href"));
         scrapeDetailPageGoods(auctionUrl);
-        return null;
+
+        return auction.build();
+    }
+
+    private String getTextFromTable(Element table, String headerText) {
+        Elements rows = table.select("tr");
+        for (Element row : rows) {
+            Element header = row.selectFirst("th");
+            if (header != null && header.text().equalsIgnoreCase(headerText)) {
+                return row.selectFirst("td").text();
+            }
+        }
+        return "";
+    }
+
+    private String getLink(String hrefLink) {
+        return "https://subastas.boe.es" + hrefLink.substring(1);
     }
 
     private Auction scrapeDetailPageGoods(String url) throws IOException {
         Document detailDoc = Jsoup.connect(url).get();
-        System.out.println(detailDoc);
+
         return null;
     }
 
