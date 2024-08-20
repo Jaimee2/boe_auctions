@@ -1,6 +1,7 @@
 package com.example.boe_auction.auction_web_scraping.service.service.impl;
 
 import com.example.boe_auction.auction_web_scraping.model.Auction;
+import com.example.boe_auction.auction_web_scraping.model.AuctionAsset;
 import com.example.boe_auction.auction_web_scraping.service.service.AuctionWebScrapingService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,20 +50,31 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                 ).toList();
 
         for (String auctionLink : auctionDetailLinkList) {
-            auctions.add(scrapeDetailPage(auctionLink));
+            auctions.add(scrapeAuction(auctionLink));
         }
 
         return auctions;
     }
 
-    private Auction scrapeDetailPage(String url) throws IOException {
+    private Auction scrapeAuction(String url) throws IOException {
         Document detailDoc = Jsoup.connect(url).get();
 
+        Auction auction = getGeneralInformation(detailDoc);
+
+        detailDoc.select("td:contains(Identificador) + td strong").text();
+        Elements linkElement = detailDoc.select("a[href*='ver=3']");
+        String auctionUrl = getLink(linkElement.attr("href"));
+
+        auction.setAssets(List.of(getGoods(auctionUrl)));
+
+        return auction;
+    }
+
+    private Auction getGeneralInformation(Document detailDoc) {
         Element dataTable = detailDoc.getElementById("idBloqueDatos1").selectFirst("table tbody");
-
-        Auction.AuctionBuilder auction = Auction.builder();
-
-                auction.identifier(getTextFromTable(dataTable, "Identificador"))
+        assert dataTable != null;
+        return Auction.builder()
+                .identifier(getTextFromTable(dataTable, "Identificador"))
                 .auctionType(getTextFromTable(dataTable, "Tipo de subasta"))
                 .startDate((getTextFromTable(dataTable, "Fecha de inicio").split("\\(ISO")[0].trim()))
                 .endDate((getTextFromTable(dataTable, "Fecha de conclusión").split("\\(ISO")[0].trim()))
@@ -75,12 +87,6 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                 .depositAmount(getTextFromTable(dataTable, "Importe del depósito"))
                 .build();
 
-        detailDoc.select("td:contains(Identificador) + td strong").text();
-        Elements linkElement = detailDoc.select("a[href*='ver=3']");
-        String auctionUrl = getLink(linkElement.attr("href"));
-        scrapeDetailPageGoods(auctionUrl);
-
-        return auction.build();
     }
 
     private String getTextFromTable(Element table, String headerText) {
@@ -98,10 +104,25 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
         return "https://subastas.boe.es" + hrefLink.substring(1);
     }
 
-    private Auction scrapeDetailPageGoods(String url) throws IOException {
+    private AuctionAsset getGoods(String url) throws IOException {
         Document detailDoc = Jsoup.connect(url).get();
-
-        return null;
+        Element assetTable = detailDoc.selectFirst("#idBloqueDatos3 .bloque table");
+        assert assetTable != null;
+        return AuctionAsset.builder()
+                .description(getTextFromTable(assetTable, "Descripción"))
+                .iDufir(getTextFromTable(assetTable, "IDUFIR"))
+                .cadastralReference(getTextFromTable(assetTable, "Referencia catastral"))
+                .address(getTextFromTable(assetTable, "Dirección"))
+                .postalCode(getTextFromTable(assetTable, "Código Postal"))
+                .city(getTextFromTable(assetTable, "Localidad"))
+                .province(getTextFromTable(assetTable, "Provincia"))
+                .isPrimaryResidence(getTextFromTable(assetTable, "Vivienda habitual").equalsIgnoreCase("Sí"))
+                .possessionStatus(getTextFromTable(assetTable, "Situación posesoria"))
+                .isVisitable(getTextFromTable(assetTable, "Visitable"))
+                .encumbrances(getTextFromTable(assetTable, "Cargas"))
+                .registryDetails(getTextFromTable(assetTable, "Inscripción registral"))
+                .legalTitle(getTextFromTable(assetTable, "Título jurídico"))
+                .build();
     }
 
 }

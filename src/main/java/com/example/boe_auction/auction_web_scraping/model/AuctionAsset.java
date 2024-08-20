@@ -1,8 +1,10 @@
 package com.example.boe_auction.auction_web_scraping.model;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class AuctionAsset {
 
     private String description;

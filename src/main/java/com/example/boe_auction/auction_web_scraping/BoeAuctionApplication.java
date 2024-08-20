@@ -1,6 +1,8 @@
 package com.example.boe_auction.auction_web_scraping;
 
 import com.example.boe_auction.auction_web_scraping.service.service.AuctionWebScrapingService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.SpringApplication;
@@ -20,7 +22,8 @@ public class BoeAuctionApplication {
 
     @PostConstruct
     void postConstruct() throws IOException {
-        System.out.println(auctionWebScrapingService.performQuery());
+        ObjectMapper objectMapper = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true);
+        System.out.println(objectMapper.writeValueAsString(auctionWebScrapingService.performQuery()));
     }
 
 }
