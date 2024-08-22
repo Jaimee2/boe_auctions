@@ -31,6 +31,8 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                 .data("campo[3]", "BIEN.TIPO")
                 .data("dato[3]", "I")
                 .data("dato[4]", "")
+                .data("campo[7]", "BIEN.LOCALIDAD")
+                .data("dato[7]", "Madrid")
                 .data("campo[8]", "BIEN.COD_PROVINCIA")
                 .data("dato[8]", "28") //28 -> Madrid
                 .data("page_hits", "500")
@@ -45,8 +47,8 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
 
         List<String> auctionDetailLinkList = document.select(".resultado-busqueda")
                 .stream()
-                .map(auctionElement -> getLink(auctionElement
-                        .selectFirst("a.resultado-busqueda-link-defecto").attr("href"))
+                .map(auctionElement ->
+                        getLink(auctionElement.selectFirst("a.resultado-busqueda-link-defecto").attr("href"))
                 ).toList();
 
         for (String auctionLink : auctionDetailLinkList) {
@@ -116,7 +118,9 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                 .postalCode(getTextFromTable(assetTable, "Código Postal"))
                 .city(getTextFromTable(assetTable, "Localidad"))
                 .province(getTextFromTable(assetTable, "Provincia"))
-                .isPrimaryResidence(getTextFromTable(assetTable, "Vivienda habitual").equalsIgnoreCase("Sí"))
+                .isPrimaryResidence(getTextFromTable(assetTable, "Vivienda habitual")
+                        .equalsIgnoreCase("Sí")
+                )
                 .possessionStatus(getTextFromTable(assetTable, "Situación posesoria"))
                 .isVisitable(getTextFromTable(assetTable, "Visitable"))
                 .encumbrances(getTextFromTable(assetTable, "Cargas"))
