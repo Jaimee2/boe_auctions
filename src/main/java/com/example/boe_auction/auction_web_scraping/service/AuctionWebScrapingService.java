@@ -1,4 +1,4 @@
-package com.example.boe_auction.auction_web_scraping.service.service;
+package com.example.boe_auction.auction_web_scraping.service;
 
 import com.example.boe_auction.auction_web_scraping.model.Auction;
 

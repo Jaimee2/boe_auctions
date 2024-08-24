@@ -1,7 +1,7 @@
 package com.example.boe_auction.auction_web_scraping.controller;
 
 import com.example.boe_auction.auction_web_scraping.model.Auction;
-import com.example.boe_auction.auction_web_scraping.service.service.AuctionWebScrapingService;
+import com.example.boe_auction.auction_web_scraping.service.AuctionWebScrapingService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

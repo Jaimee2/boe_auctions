@@ -11,6 +11,10 @@ public class AuctionAsset {
     private String iDufir;
     private String cadastralReference;
     private String address;
+    private String addressIA;
+    private String fullAddress;
+    private String fullAddressWithIA;
+    private Coordinates coordinates;
     private String postalCode;
     private String city;
     private String province;

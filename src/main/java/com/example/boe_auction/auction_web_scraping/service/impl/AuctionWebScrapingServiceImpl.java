@@ -1,8 +1,10 @@
-package com.example.boe_auction.auction_web_scraping.service.service.impl;
+package com.example.boe_auction.auction_web_scraping.service.impl;
 
 import com.example.boe_auction.auction_web_scraping.model.Auction;
 import com.example.boe_auction.auction_web_scraping.model.AuctionAsset;
-import com.example.boe_auction.auction_web_scraping.service.service.AuctionWebScrapingService;
+import com.example.boe_auction.auction_web_scraping.model.Coordinates;
+import com.example.boe_auction.auction_web_scraping.ollama.service.OllamaService;
+import com.example.boe_auction.auction_web_scraping.service.AuctionWebScrapingService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
@@ -11,8 +13,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +26,10 @@ import java.util.List;
 @AllArgsConstructor
 public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService {
 
+    private OllamaService ollamaService;
+
     public List<Auction> performQuery() throws IOException {
+
         String url = "https://subastas.boe.es/subastas_ava.php";
 
         Document document = Jsoup.connect(url)
@@ -32,7 +40,7 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                 .data("dato[3]", "I")
                 .data("dato[4]", "")
                 .data("campo[7]", "BIEN.LOCALIDAD")
-                .data("dato[7]", "Madrid")
+                .data("dato[7]", "")
                 .data("campo[8]", "BIEN.COD_PROVINCIA")
                 .data("dato[8]", "28") //28 -> Madrid
                 .data("page_hits", "500")
@@ -51,9 +59,34 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                         getLink(auctionElement.selectFirst("a.resultado-busqueda-link-defecto").attr("href"))
                 ).toList();
 
-        for (String auctionLink : auctionDetailLinkList) {
-            auctions.add(scrapeAuction(auctionLink));
-        }
+        for (String auctionLink : auctionDetailLinkList) auctions.add(scrapeAuction(auctionLink));
+
+        log.info("Ended web scraping");
+        log.info("Starting address improving with AI (Ollama)");
+
+
+        auctions.forEach(
+                auction -> auction.getAssets()
+                        .forEach(auctionAsset -> {
+                            if (auctionAsset.getAddress() != null && !auctionAsset.getAddress().isEmpty()) {
+
+                                auctionAsset.setAddressIA(
+                                        ollamaService.improveAddressForGeoDataApi(auctionAsset.getAddress())
+                                );
+
+                                auctionAsset.setFullAddressWithIA(
+                                        STR."\{auctionAsset.getAddressIA()}, \{auctionAsset.getPostalCode()}, \{auctionAsset.getCity()}"
+                                );
+
+                                auctionAsset.setFullAddress(
+                                        STR."\{auctionAsset.getAddress()}, \{auctionAsset.getPostalCode()}, \{auctionAsset.getCity()}"
+                                );
+
+                                auctionAsset.setCoordinates(getLatLon(auctionAsset.getFullAddressWithIA()));
+
+                            }
+                        })
+        );
 
         return auctions;
     }
@@ -127,6 +160,33 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                 .registryDetails(getTextFromTable(assetTable, "Inscripción registral"))
                 .legalTitle(getTextFromTable(assetTable, "Título jurídico"))
                 .build();
+    }
+
+    public Coordinates getLatLon(String address) {
+
+        String url = "https://nominatim.openstreetmap.org/search";
+
+        RestClient restClient = RestClient.create();
+
+        URI uri = UriComponentsBuilder.fromHttpUrl(url)
+                .queryParam("q", address)
+                .queryParam("format", "json")
+                .build()
+                .toUri();
+        log.info(uri.toString());
+
+        Coordinates[] response = restClient.get()
+                .uri(uri)
+                .retrieve()
+                .body(Coordinates[].class);
+
+        if (response != null && response.length >= 1) {
+            System.out.println(response[0]);
+            return response[0];
+        } else {
+            return null;
+        }
+
     }
 
 }
