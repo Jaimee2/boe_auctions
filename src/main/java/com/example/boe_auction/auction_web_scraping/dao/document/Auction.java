@@ -1,16 +1,20 @@
-package com.example.boe_auction.auction_web_scraping.model;
+package com.example.boe_auction.auction_web_scraping.dao.document;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
 @Data
 @Builder
+@Document
 @AllArgsConstructor
 public class Auction {
 
+    @Id
     private String identifier;
 
     private String auctionType;

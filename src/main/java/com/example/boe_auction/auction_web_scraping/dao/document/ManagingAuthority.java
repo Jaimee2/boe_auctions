@@ -1,4 +1,4 @@
-package com.example.boe_auction.auction_web_scraping.model;
+package com.example.boe_auction.auction_web_scraping.dao.document;
 
 import lombok.Data;
 

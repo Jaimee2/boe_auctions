@@ -1,8 +1,9 @@
 package com.example.boe_auction.auction_web_scraping.service.impl;
 
-import com.example.boe_auction.auction_web_scraping.model.Auction;
-import com.example.boe_auction.auction_web_scraping.model.AuctionAsset;
-import com.example.boe_auction.auction_web_scraping.model.Coordinates;
+import com.example.boe_auction.auction_web_scraping.dao.document.Auction;
+import com.example.boe_auction.auction_web_scraping.dao.document.AuctionAsset;
+import com.example.boe_auction.auction_web_scraping.dao.document.Coordinates;
+import com.example.boe_auction.auction_web_scraping.dao.repository.AuctionRepository;
 import com.example.boe_auction.auction_web_scraping.ollama.service.OllamaService;
 import com.example.boe_auction.auction_web_scraping.service.AuctionWebScrapingService;
 import lombok.AllArgsConstructor;
@@ -18,8 +19,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -27,6 +32,7 @@ import java.util.List;
 public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService {
 
     private OllamaService ollamaService;
+    private AuctionRepository auctionRepository;
 
     public List<Auction> performQuery() throws IOException {
 
@@ -53,47 +59,41 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
 
         List<Auction> auctions = new ArrayList<>();
 
-        List<String> auctionDetailLinkList = document.select(".resultado-busqueda")
+        document.select(".resultado-busqueda")
                 .stream()
-                .map(auctionElement ->
-                        getLink(auctionElement.selectFirst("a.resultado-busqueda-link-defecto").attr("href"))
-                ).toList();
+                .map(auctionElement -> getLink(auctionElement
+                        .selectFirst("a.resultado-busqueda-link-defecto").attr("href"))
+                )
+                .filter(auction -> !auctionRepository.existsById(getAuctionIdFromLink(auction)))
+                .forEach(auctionLink -> auctions.add(scrapeAuction(auctionLink)));
 
-        for (String auctionLink : auctionDetailLinkList) auctions.add(scrapeAuction(auctionLink));
+        log.info(" ************************** Ended web scraping ****************************************************");
+        log.info("New auction: {}", auctions);
+        log.info(" **************************************************************************************************");
 
-        log.info("Ended web scraping");
-        log.info("Starting address improving with AI (Ollama)");
-
-
-        auctions.forEach(
-                auction -> auction.getAssets()
-                        .forEach(auctionAsset -> {
-                            if (auctionAsset.getAddress() != null && !auctionAsset.getAddress().isEmpty()) {
-
-                                auctionAsset.setAddressIA(
-                                        ollamaService.improveAddressForGeoDataApi(auctionAsset.getAddress())
-                                );
-
-                                auctionAsset.setFullAddressWithIA(
-                                        STR."\{auctionAsset.getAddressIA()}, \{auctionAsset.getPostalCode()}, \{auctionAsset.getCity()}"
-                                );
-
-                                auctionAsset.setFullAddress(
-                                        STR."\{auctionAsset.getAddress()}, \{auctionAsset.getPostalCode()}, \{auctionAsset.getCity()}"
-                                );
-
-                                auctionAsset.setCoordinates(getLatLon(auctionAsset.getFullAddressWithIA()));
-
-                            }
-                        })
+        auctions.forEach(auction ->
+                auction.getAssets().forEach(auctionAsset -> {
+                    if (auctionAsset.getAddress() == null || auctionAsset.getAddress().isEmpty()) return;
+                    auctionAsset.setAddressIA(
+                            ollamaService.improveAddressForGeoDataApi(auctionAsset.getAddress())
+                    );
+                    auctionAsset.setFullAddressWithIA(
+                            STR."\{auctionAsset.getAddressIA()}, \{auctionAsset.getPostalCode()}, \{auctionAsset.getCity()}"
+                    );
+                    auctionAsset.setFullAddress(
+                            STR."\{auctionAsset.getAddress()}, \{auctionAsset.getPostalCode()}, \{auctionAsset.getCity()}"
+                    );
+                    auctionAsset.setCoordinates(getLatLon(auctionAsset.getFullAddressWithIA()));
+                })
         );
 
+        auctionRepository.saveAll(auctions);
         return auctions;
     }
 
-    private Auction scrapeAuction(String url) throws IOException {
-        Document detailDoc = Jsoup.connect(url).get();
 
+    private Auction scrapeAuction(String url) {
+        Document detailDoc = getDocument(url);
         Auction auction = getGeneralInformation(detailDoc);
 
         detailDoc.select("td:contains(Identificador) + td strong").text();
@@ -103,6 +103,17 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
         auction.setAssets(List.of(getGoods(auctionUrl)));
 
         return auction;
+    }
+
+    private Document getDocument(String url) {
+        Document detailDoc;
+        try {
+            detailDoc = Jsoup.connect(url).get();
+        } catch (IOException e) {
+            log.error("Error trying to get the url {}", url);
+            throw new RuntimeException(e);
+        }
+        return detailDoc;
     }
 
     private Auction getGeneralInformation(Document detailDoc) {
@@ -139,8 +150,30 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
         return "https://subastas.boe.es" + hrefLink.substring(1);
     }
 
-    private AuctionAsset getGoods(String url) throws IOException {
-        Document detailDoc = Jsoup.connect(url).get();
+    public static String getAuctionIdFromLink(String urlString) {
+        try {
+            URL url = new URL(urlString);
+            String query = url.getQuery();
+
+            Map<String, String> queryPairs = new HashMap<>();
+            String[] pairs = query.split("&");
+            for (String pair : pairs) {
+                int idx = pair.indexOf("=");
+                String key = URLDecoder.decode(pair.substring(0, idx), "UTF-8");
+                String value = URLDecoder.decode(pair.substring(idx + 1), "UTF-8");
+                queryPairs.put(key, value);
+            }
+
+            return queryPairs.get("idSub");
+
+        } catch (Exception e) {
+            log.error("Error in getting auction Id from url");
+            throw new RuntimeException();
+        }
+    }
+
+    private AuctionAsset getGoods(String url) {
+        Document detailDoc = getDocument(url);
         Element assetTable = detailDoc.selectFirst("#idBloqueDatos3 .bloque table");
         assert assetTable != null;
         return AuctionAsset.builder()

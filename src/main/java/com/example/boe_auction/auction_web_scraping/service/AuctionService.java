@@ -2,11 +2,9 @@ package com.example.boe_auction.auction_web_scraping.service;
 
 import com.example.boe_auction.auction_web_scraping.dao.document.Auction;
 
-import java.io.IOException;
 import java.util.List;
 
-public interface AuctionWebScrapingService {
+public interface AuctionService {
 
-    List<Auction> performQuery() throws IOException;
-
+    List<Auction> getAllAuctions();
 }
