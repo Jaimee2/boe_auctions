@@ -7,4 +7,6 @@ import java.util.List;
 public interface AuctionService {
 
     List<Auction> getAllAuctions();
+
+    void deleteAllAuctions();
 }

@@ -177,6 +177,7 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
         Element assetTable = detailDoc.selectFirst("#idBloqueDatos3 .bloque table");
         assert assetTable != null;
         return AuctionAsset.builder()
+                .assetLink(url)
                 .description(getTextFromTable(assetTable, "Descripción"))
                 .iDufir(getTextFromTable(assetTable, "IDUFIR"))
                 .cadastralReference(getTextFromTable(assetTable, "Referencia catastral"))

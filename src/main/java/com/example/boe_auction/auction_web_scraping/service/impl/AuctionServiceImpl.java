@@ -20,4 +20,8 @@ public class AuctionServiceImpl implements AuctionService {
         return auctionRepository.findAll();
     }
 
+    public void deleteAllAuctions() {
+        auctionRepository.deleteAll();
+    }
+
 }
