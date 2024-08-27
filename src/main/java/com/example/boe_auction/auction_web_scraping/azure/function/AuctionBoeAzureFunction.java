@@ -5,6 +5,7 @@ import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
+import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -34,6 +35,28 @@ public class AuctionBoeAzureFunction {
         return request.createResponseBuilder(HttpStatus.OK)
                 .body("Hello, World!")
                 .build();
+    }
+
+    @FunctionName("getAllAuctions")
+    public HttpResponseMessage getAllAuctions(
+            @HttpTrigger(name = "req",
+                    methods = {HttpMethod.GET},
+                    authLevel = AuthorizationLevel.ANONYMOUS,
+                    route = "auctions"
+            ) HttpRequestMessage<Optional<String>> request,
+            ExecutionContext context) {
+        log.info(context.toString());
+        log.info("Received request to getAllAuctions");
+
+        return request.createResponseBuilder(HttpStatus.OK)
+                .header("Content-Type", "application/json")
+                .body(auctionService.getAllAuctions())
+                .build();
+    }
+
+    @PostConstruct
+    void hello() {
+        log.info(" HELLO ---> AuctionBoeAzureFunction");
     }
 
 }
