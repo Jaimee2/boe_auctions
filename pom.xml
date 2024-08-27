@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
-    <artifactId>boe_auction</artifactId>
+    <artifactId>azure-function-boe-auction</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>azure-function-boe-auction</name>
     <description>boe_auction</description>
