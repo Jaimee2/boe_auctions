@@ -16,41 +16,57 @@
 
     <properties>
         <java.version>17</java.version>
+        <spring-cloud.version>2023.0.2</spring-cloud.version>
+        <spring-cloud-azure.version>5.13.0</spring-cloud-azure.version>
         <start-class>com.example.boe_auction.auction_web_scraping.BoeAuctionApplication</start-class>
         <functionAppName>azure-function-boe-auction</functionAppName>
     </properties>
-
     <dependencyManagement>
         <dependencies>
-<!--            <dependency>-->
-<!--                <groupId>org.springframework.ai</groupId>-->
-<!--                <artifactId>spring-ai-bom</artifactId>-->
-<!--                <version>1.0.0-SNAPSHOT</version>-->
-<!--                <type>pom</type>-->
-<!--                <scope>import</scope>-->
-<!--            </dependency>-->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
-                <version>2023.0.2</version>
+                <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>com.azure.spring</groupId>
                 <artifactId>spring-cloud-azure-dependencies</artifactId>
-                <version>5.13.0</version>
+                <version>${spring-cloud-azure.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
 
+<!--    <dependencyManagement>-->
+<!--        <dependencies>-->
+<!--&lt;!&ndash;            <dependency>&ndash;&gt;-->
+<!--&lt;!&ndash;                <groupId>org.springframework.ai</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;                <artifactId>spring-ai-bom</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;                <version>1.0.0-SNAPSHOT</version>&ndash;&gt;-->
+<!--&lt;!&ndash;                <type>pom</type>&ndash;&gt;-->
+<!--&lt;!&ndash;                <scope>import</scope>&ndash;&gt;-->
+<!--&lt;!&ndash;            </dependency>&ndash;&gt;-->
+<!--            <dependency>-->
+<!--                <groupId>org.springframework.cloud</groupId>-->
+<!--                <artifactId>spring-cloud-dependencies</artifactId>-->
+<!--                <version>2023.0.2</version>-->
+<!--                <type>pom</type>-->
+<!--                <scope>import</scope>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>com.azure.spring</groupId>-->
+<!--                <artifactId>spring-cloud-azure-dependencies</artifactId>-->
+<!--                <version>5.13.0</version>-->
+<!--                <type>pom</type>-->
+<!--                <scope>import</scope>-->
+<!--            </dependency>-->
+<!--        </dependencies>-->
+<!--    </dependencyManagement>-->
+
     <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
