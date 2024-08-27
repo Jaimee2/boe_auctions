@@ -5,17 +5,17 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.2</version>
+        <version>3.3.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
     <artifactId>boe_auction</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>boe_auction</name>
+    <name>azure-function-boe-auction</name>
     <description>boe_auction</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>17</java.version>
         <start-class>com.example.boe_auction.auction_web_scraping.BoeAuctionApplication</start-class>
         <functionAppName>azure-function-boe-auction</functionAppName>
     </properties>

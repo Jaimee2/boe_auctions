@@ -15,8 +15,8 @@ public class OllamaServiceImpl implements OllamaService {
 
     public String improveAddressForGeoDataApi(String address) {
         log.info("Ollama improving address -> {}", address);
-        return chatModel.call(STR."""
 
+        String prompt = String.format("""
                Necesito que me devuelvas la dirección mejorada "address",
                para que pueda ser mejor interpretada por las apis de geocoding.
                La respuesta debe de ser extrictamente la dirección.
@@ -24,11 +24,18 @@ public class OllamaServiceImpl implements OllamaService {
                Dame solo la calle y el número. Evita otros datos.
                La calle también puede ser otro tipo de vía,(por ejemplo, Calle, Avenida, Paseo, etc.)
 
-                address: \{address}
+               address: %s
 
-                El patrón debe de ser: Calle, número.
+               El patrón debe de ser: Calle, número.
 
-                Ejemplo: Calle Cabo Suceso, 4
-               """);
+               Ejemplo: Calle Cabo Suceso, 4
+               """, address);
+
+        try {
+            return chatModel.call(prompt);
+        } catch (Exception e) {
+            log.error("Error improving address: {}", address, e);
+            return null;
+        }
     }
 }

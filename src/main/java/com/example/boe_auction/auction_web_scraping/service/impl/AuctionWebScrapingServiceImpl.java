@@ -77,11 +77,16 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                     auctionAsset.setAddressIA(
                             ollamaService.improveAddressForGeoDataApi(auctionAsset.getAddress())
                     );
-                    auctionAsset.setFullAddressWithIA(
-                            STR."\{auctionAsset.getAddressIA()}, \{auctionAsset.getPostalCode()}, \{auctionAsset.getCity()}"
+                    auctionAsset.setFullAddressWithIA(String.format("%s, %s, %s",
+                            auctionAsset.getAddressIA(),
+                            auctionAsset.getPostalCode(),
+                            auctionAsset.getCity())
                     );
-                    auctionAsset.setFullAddress(
-                            STR."\{auctionAsset.getAddress()}, \{auctionAsset.getPostalCode()}, \{auctionAsset.getCity()}"
+
+                    auctionAsset.setFullAddress(String.format("%s, %s, %s",
+                            auctionAsset.getAddress(),
+                            auctionAsset.getPostalCode(),
+                            auctionAsset.getCity())
                     );
                     auctionAsset.setCoordinates(getLatLon(auctionAsset.getFullAddressWithIA()));
                 })
