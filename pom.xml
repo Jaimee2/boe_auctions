@@ -109,27 +109,6 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>21</source>
-                    <target>21</target>
-                    <compilerArgs>--enable-preview</compilerArgs>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-functions-maven-plugin</artifactId>
                 <version>1.22.0</version>
@@ -146,7 +125,7 @@
 
                     <runtime>
                         <os>linux</os>
-                        <javaVersion>21</javaVersion>
+                        <javaVersion>17</javaVersion>
                     </runtime>
 
                     <appSettings>
