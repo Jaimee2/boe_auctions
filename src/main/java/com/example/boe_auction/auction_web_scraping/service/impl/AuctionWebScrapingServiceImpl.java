@@ -74,6 +74,7 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
         auctions.forEach(auction ->
                 auction.getAssets().forEach(auctionAsset -> {
                     if (auctionAsset.getAddress() == null || auctionAsset.getAddress().isEmpty()) return;
+
                     auctionAsset.setAddressIA(
                             ollamaService.improveAddressForGeoDataApi(auctionAsset.getAddress())
                     );
@@ -88,6 +89,7 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                             auctionAsset.getPostalCode(),
                             auctionAsset.getCity())
                     );
+
                     auctionAsset.setCoordinates(getLatLon(auctionAsset.getFullAddressWithIA()));
                 })
         );

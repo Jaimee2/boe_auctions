@@ -1,5 +1,6 @@
 package com.example.boe_auction.auction_web_scraping.azure.function;
 
+import com.example.boe_auction.auction_web_scraping.service.AuctionService;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
@@ -15,6 +16,8 @@ import java.util.Optional;
 @AllArgsConstructor
 public class AuctionBoeAzureFunction {
 
+    private AuctionService auctionService;
+
     @FunctionName("hello")
     public HttpResponseMessage run(
             @HttpTrigger(
@@ -25,6 +28,8 @@ public class AuctionBoeAzureFunction {
             )
             HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {
+
+        log.info("Received a request in the hello function.");
 
         return request.createResponseBuilder(HttpStatus.OK)
                 .body("Hello, World!")
