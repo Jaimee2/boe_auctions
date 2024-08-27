@@ -14,8 +14,6 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4
