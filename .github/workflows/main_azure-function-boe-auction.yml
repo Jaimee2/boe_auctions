@@ -1,3 +1,6 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
 name: Build and deploy Java project to Azure Function App - azure-function-boe-auction
 
 on:
@@ -7,30 +10,38 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_NAME: azure-function-boe-auction
-  PACKAGE_DIRECTORY: '.'
-  JAVA_VERSION: '17'
+  AZURE_FUNCTIONAPP_NAME: azure-function-boe-auction # set this to your function app name on Azure
+  PACKAGE_DIRECTORY: '.' # set this to the directory which contains pom.xml file
+  JAVA_VERSION: '17' # set this to the java version to use
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write #This is required for requesting the JWT
+
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4
 
       - name: Setup Java Sdk ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v2.3.1
-        with:
+        uses: actions/setup-java@v1
+        with: |+
           java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'adopt'
-          cache: 'maven'
 
       - name: 'Restore Project Dependencies Using Mvn'
         shell: pwsh
-        run: |
+        run: |+
           pushd './${{ env.PACKAGE_DIRECTORY }}'
           mvn clean package
           popd
+      
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_0CCE0691CFB143D29A38C230E0EF6E3F }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_7180963AC8A145D3BF22AFDE012A0881 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0B55315959A940809B9B4D8E6CE39B9F }}
 
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
@@ -38,6 +49,6 @@ jobs:
         with:
           app-name: 'azure-function-boe-auction'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F324F6E1243D4000B1BE3837BFD856A7 }}
           package: '${{ env.PACKAGE_DIRECTORY }}'
           respect-pom-xml: true
+          
