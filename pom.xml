@@ -134,7 +134,7 @@
                     <appName>${functionAppName}</appName>
 
                     <resourceGroup>azure-map-test</resourceGroup>
-                    <appServicePlanName>ASP-azuremaptest-870d</appServicePlanName>
+                    <appServicePlanName>ASP-azuremaptest-808b</appServicePlanName>
 
                     <hostJson>${project.basedir}/src/main/azure/host.json</hostJson>
                     <localSettingsJson>${project.basedir}/src/main/azure/local.settings.json</localSettingsJson>
