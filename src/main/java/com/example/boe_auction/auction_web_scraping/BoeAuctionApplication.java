@@ -10,4 +10,5 @@ public class BoeAuctionApplication {
         SpringApplication.run(BoeAuctionApplication.class, args);
     }
 
+
 }
