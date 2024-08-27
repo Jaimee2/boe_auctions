@@ -19,7 +19,7 @@ public class AuctionBoeAzureFunction {
     private AuctionService auctionService;
 
     @FunctionName("hello")
-    public HttpResponseMessage run(
+    public HttpResponseMessage hello(
             @HttpTrigger(
                     name = "req",
                     methods = {HttpMethod.GET},
@@ -27,8 +27,8 @@ public class AuctionBoeAzureFunction {
                     route = "hello"
             )
             HttpRequestMessage<Optional<String>> request,
-            final ExecutionContext context) {
-
+            ExecutionContext context) {
+        log.info(context.toString());
         log.info("Received a request in the hello function.");
 
         return request.createResponseBuilder(HttpStatus.OK)
