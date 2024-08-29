@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -185,6 +187,7 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
         assert assetTable != null;
         return AuctionAsset.builder()
                 .assetLink(url)
+                .assetType(getAssetType(detailDoc))
                 .description(getTextFromTable(assetTable, "Descripción"))
                 .iDufir(getTextFromTable(assetTable, "IDUFIR"))
                 .cadastralReference(getTextFromTable(assetTable, "Referencia catastral"))
@@ -201,6 +204,19 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                 .registryDetails(getTextFromTable(assetTable, "Inscripción registral"))
                 .legalTitle(getTextFromTable(assetTable, "Título jurídico"))
                 .build();
+    }
+
+    private static String getAssetType(Document detailDoc) {
+        String type = String.valueOf(detailDoc.selectFirst("#idBloqueDatos3 .bloque h4"));
+        Pattern pattern = Pattern.compile("\\(([^)]+)\\)");
+        Matcher matcher = pattern.matcher(type);
+        if (matcher.find()) {
+            String valueInsideParentheses = matcher.group(1);
+            log.info("Value inside parentheses: {}", valueInsideParentheses);
+            return valueInsideParentheses;
+        }
+        return "????????";
+
     }
 
     public Coordinates getLatLon(String address) {
@@ -222,7 +238,7 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                 .body(Coordinates[].class);
 
         if (response != null && response.length >= 1) {
-            System.out.println(response[0]);
+            log.info(response[0].toString());
             return response[0];
         } else {
             return null;

@@ -8,6 +8,7 @@ import lombok.Data;
 public class AuctionAsset {
 
     private String assetLink;
+    private String assetType;
     private String description;
     private String iDufir;
     private String cadastralReference;
