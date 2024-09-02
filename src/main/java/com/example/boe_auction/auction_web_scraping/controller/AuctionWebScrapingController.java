@@ -23,4 +23,5 @@ public class AuctionWebScrapingController {
         return ResponseEntity.ok(auctionWebScrapingService.performQuery());
     }
 
+
 }

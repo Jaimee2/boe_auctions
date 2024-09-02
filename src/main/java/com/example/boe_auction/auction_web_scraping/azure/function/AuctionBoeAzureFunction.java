@@ -48,9 +48,22 @@ public class AuctionBoeAzureFunction {
         log.info(context.toString());
         log.info("Received request to getAllAuctions");
 
+        String auctionType = request.getQueryParameters().getOrDefault("auctionType", null);
+        String assetType = request.getQueryParameters().getOrDefault("assetType", null);
+        String city = request.getQueryParameters().getOrDefault("city", null);
+        String province = request.getQueryParameters().getOrDefault("province", null);
+        String startDate = request.getQueryParameters().getOrDefault("startDate", null);
+        String endDate = request.getQueryParameters().getOrDefault("endDate", null);
+        String minimumBid = request.getQueryParameters().getOrDefault("minimumBid", null);
+        String minAppraisalValue = request.getQueryParameters().getOrDefault("minAppraisalValue", null);
+        String maxAppraisalValue = request.getQueryParameters().getOrDefault("maxAppraisalValue", null);
+
         return request.createResponseBuilder(HttpStatus.OK)
                 .header("Content-Type", "application/json")
-                .body(auctionService.getAllAuctions())
+                .body(auctionService.getAllAuctions(
+                        auctionType, city, startDate, endDate, minimumBid,
+                        minAppraisalValue, maxAppraisalValue, province, assetType
+                ))
                 .build();
     }
 

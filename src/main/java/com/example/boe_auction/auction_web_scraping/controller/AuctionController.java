@@ -17,12 +17,25 @@ public class AuctionController {
     private AuctionService auctionService;
 
     @GetMapping
-    private ResponseEntity<List<Auction>> getAllAuctions() {
-        return ResponseEntity.ok(auctionService.getAllAuctions());
+    public ResponseEntity<List<Auction>> getAllAuctions(
+            @RequestParam(required = false) String auctionType,
+            @RequestParam(required = false) String assetType,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String province,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) String minimumBid,
+            @RequestParam(required = false) String minAppraisalValue,
+            @RequestParam(required = false) String maxAppraisalValue
+    ) {
+        return ResponseEntity.ok(auctionService.getAllAuctions(
+                auctionType, city, startDate, endDate, minimumBid,
+                minAppraisalValue, maxAppraisalValue, province, assetType
+        ));
     }
 
     @DeleteMapping
-    private ResponseEntity<Void> deleteAllAuctions() {
+    public ResponseEntity<Void> deleteAllAuctions() {
         auctionService.deleteAllAuctions();
         return ResponseEntity.ok().build();
     }
