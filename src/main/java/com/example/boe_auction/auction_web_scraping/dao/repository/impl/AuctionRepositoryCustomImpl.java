@@ -18,14 +18,14 @@ public class AuctionRepositoryCustomImpl implements AuctionRepositoryCustom {
     public List<Auction> findAuctionsByCriteria(
             String auctionType, String city, String startDate, String endDate,
             String minimumBid, String minAppraisalValue, String maxAppraisalValue, String province,
-            String assetType) {
+            List<String> assetTypes) {
         Query query = new Query();
 
         if (auctionType != null && !auctionType.isEmpty()) {
             query.addCriteria(Criteria.where("auctionType").is(auctionType));
         }
-        if (assetType != null && !assetType.isEmpty()) {
-            query.addCriteria(Criteria.where("assets.assetType").is(assetType));
+        if (assetTypes != null && !assetTypes.isEmpty()) {
+            query.addCriteria(Criteria.where("assets.assetType").in(assetTypes));
         }
         if (city != null && !city.isEmpty()) {
             query.addCriteria(Criteria.where("assets.city").is(city));

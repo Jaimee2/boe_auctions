@@ -19,7 +19,7 @@ public class AuctionController {
     @GetMapping
     public ResponseEntity<List<Auction>> getAllAuctions(
             @RequestParam(required = false) String auctionType,
-            @RequestParam(required = false) String assetType,
+            @RequestParam(required = false)  List<String> assetType,
             @RequestParam(required = false) String city,
             @RequestParam(required = false) String province,
             @RequestParam(required = false) String startDate,

@@ -18,7 +18,7 @@ public class AuctionServiceImpl implements AuctionService {
 
     public List<Auction> getAllAuctions(
             String auctionType, String city, String startDate, String endDate, String minimumBid,
-            String minAppraisalValue, String maxAppraisalValue, String province, String assetType
+            String minAppraisalValue, String maxAppraisalValue, String province, List<String> assetType
     ) {
         return auctionRepository.findAuctionsByCriteria(
                 auctionType, city, startDate, endDate, minimumBid,

@@ -9,5 +9,5 @@ public interface AuctionRepositoryCustom {
     List<Auction> findAuctionsByCriteria(
             String auctionType, String city, String startDate, String endDate,
             String minimumBid, String minAppraisalValue, String maxAppraisalValue, String province,
-            String assetType);
+            List<String> assetType);
 }
