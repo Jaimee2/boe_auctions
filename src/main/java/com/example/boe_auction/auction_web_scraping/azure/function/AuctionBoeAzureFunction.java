@@ -67,7 +67,6 @@ public class AuctionBoeAzureFunction {
 
         List<String> assetTypes = extractMultipleValues(queryString);
 
-
         return request.createResponseBuilder(HttpStatus.OK)
                 .header("Content-Type", "application/json")
                 .body(auctionService.getAllAuctions(

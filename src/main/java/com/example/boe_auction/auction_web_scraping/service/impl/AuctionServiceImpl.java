@@ -20,6 +20,7 @@ public class AuctionServiceImpl implements AuctionService {
             String auctionType, String city, String startDate, String endDate, String minimumBid,
             String minAppraisalValue, String maxAppraisalValue, String province, List<String> assetType
     ) {
+        log.info("AuctionService::getAllAuctions");
         return auctionRepository.findAuctionsByCriteria(
                 auctionType, city, startDate, endDate, minimumBid,
                 minAppraisalValue, maxAppraisalValue, province, assetType
