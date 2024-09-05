@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.example.boe_auction.auction_web_scraping.utils.AuctionUtils.extractMultipleValues;
+
 @RestController
 @AllArgsConstructor
 @RequestMapping("/auction")
@@ -30,7 +32,7 @@ public class AuctionController {
     ) {
         return ResponseEntity.ok(auctionService.getAllAuctions(
                 auctionType, city, startDate, endDate, minimumBid,
-                minAppraisalValue, maxAppraisalValue, province, assetType
+                minAppraisalValue, maxAppraisalValue, province, extractMultipleValues(auctionType)
         ));
     }
 

@@ -10,9 +10,13 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static com.example.boe_auction.auction_web_scraping.utils.AuctionUtils.extractMultipleValues;
 
 @Slf4j
 @Component
@@ -60,6 +64,7 @@ public class AuctionBoeAzureFunction {
         String minAppraisalValue = request.getQueryParameters().getOrDefault("minAppraisalValue", null);
         String maxAppraisalValue = request.getQueryParameters().getOrDefault("maxAppraisalValue", null);
         String queryString = request.getUri().getQuery();
+
         List<String> assetTypes = extractMultipleValues(queryString);
 
 
@@ -75,17 +80,6 @@ public class AuctionBoeAzureFunction {
     @PostConstruct
     void hello() {
         log.info(" HELLO ---> AuctionBoeAzureFunction");
-    }
-
-    private List<String> extractMultipleValues(String queryString) {
-        if (queryString == null) return null;
-        List<String> values = new ArrayList<>();
-        String[] params = queryString.split("&");
-        for (String param : params) {
-            String[] keyValue = param.split("=");
-            if (keyValue.length == 2 && keyValue[0].equals("assetType")) values.add(keyValue[1]);
-        }
-        return values;
     }
 
 }
