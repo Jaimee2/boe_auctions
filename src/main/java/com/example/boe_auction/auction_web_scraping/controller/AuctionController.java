@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.example.boe_auction.auction_web_scraping.utils.AuctionUtils.extractMultipleValues;
-
 @RestController
 @AllArgsConstructor
 @RequestMapping("/auction")
@@ -21,7 +19,7 @@ public class AuctionController {
     @GetMapping
     public ResponseEntity<List<Auction>> getAllAuctions(
             @RequestParam(required = false) String auctionType,
-            @RequestParam(required = false)  List<String> assetType,
+            @RequestParam(required = false) List<String> assetTypes,
             @RequestParam(required = false) String city,
             @RequestParam(required = false) String province,
             @RequestParam(required = false) String startDate,
@@ -30,10 +28,10 @@ public class AuctionController {
             @RequestParam(required = false) String minAppraisalValue,
             @RequestParam(required = false) String maxAppraisalValue
     ) {
+
         return ResponseEntity.ok(auctionService.getAllAuctions(
                 auctionType, city, startDate, endDate, minimumBid,
-                minAppraisalValue, maxAppraisalValue, province, extractMultipleValues(auctionType)
-        ));
+                minAppraisalValue, maxAppraisalValue, province, assetTypes));
     }
 
     @DeleteMapping
