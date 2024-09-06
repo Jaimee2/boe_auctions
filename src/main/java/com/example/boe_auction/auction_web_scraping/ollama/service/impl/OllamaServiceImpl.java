@@ -32,7 +32,9 @@ public class OllamaServiceImpl implements OllamaService {
                 """, address);
 
         try {
-            return chatModel.call(prompt);
+            String response = chatModel.call(prompt);
+            log.info("Ollama response -> {}", response);
+            return response;
         } catch (Exception e) {
             log.error("Error improving address: {}", address, e);
             return null;

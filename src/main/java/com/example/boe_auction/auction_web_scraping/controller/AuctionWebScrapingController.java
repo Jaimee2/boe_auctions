@@ -1,6 +1,7 @@
 package com.example.boe_auction.auction_web_scraping.controller;
 
 import com.example.boe_auction.auction_web_scraping.dao.document.Auction;
+import com.example.boe_auction.auction_web_scraping.enums.Provinces;
 import com.example.boe_auction.auction_web_scraping.service.AuctionWebScrapingService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,10 @@ public class AuctionWebScrapingController {
 
     @GetMapping
     public ResponseEntity<List<Auction>> getAllAuctions() throws IOException {
-        return ResponseEntity.ok(auctionWebScrapingService.performQuery());
+        Provinces.getAllCodes();
+        return ResponseEntity.ok(
+                auctionWebScrapingService.performQuery()
+        );
     }
 
 

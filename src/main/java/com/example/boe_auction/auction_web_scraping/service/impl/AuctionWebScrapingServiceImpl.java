@@ -4,6 +4,7 @@ import com.example.boe_auction.auction_web_scraping.dao.document.Auction;
 import com.example.boe_auction.auction_web_scraping.dao.document.AuctionAsset;
 import com.example.boe_auction.auction_web_scraping.dao.document.Coordinates;
 import com.example.boe_auction.auction_web_scraping.dao.repository.AuctionRepository;
+import com.example.boe_auction.auction_web_scraping.enums.Provinces;
 import com.example.boe_auction.auction_web_scraping.ollama.service.OllamaService;
 import com.example.boe_auction.auction_web_scraping.service.AuctionWebScrapingService;
 import lombok.AllArgsConstructor;
@@ -38,6 +39,20 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
 
     public List<Auction> performQuery() throws IOException {
 
+        return Provinces.getAllCodes()
+                .stream()
+                .flatMap(provinceCode -> {
+                    try {
+                        Thread.sleep(100);
+                        return getAuctionsByProvinceCode(provinceCode).stream(); // Convert List<Auction> to Stream<Auction>
+                    } catch (IOException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).toList();
+    }
+
+    private List<Auction> getAuctionsByProvinceCode(String provinceCode) throws IOException {
+        log.info(" ------Scraping provinceCode: {} --------", provinceCode);
         String url = "https://subastas.boe.es/subastas_ava.php";
 
         Document document = Jsoup.connect(url)
@@ -50,7 +65,7 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                 .data("campo[7]", "BIEN.LOCALIDAD")
                 .data("dato[7]", "")
                 .data("campo[8]", "BIEN.COD_PROVINCIA")
-                .data("dato[8]", "28") //28 -> Madrid
+                .data("dato[8]", provinceCode) //28 -> Madrid //23 -> Jaén // 31 -> Navarra
                 .data("page_hits", "500")
                 .data("sort_field[0]", "SUBASTA.FECHA_FIN")
                 .data("sort_order[0]", "desc")
@@ -73,6 +88,13 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
         log.info("New auction: {}", auctions);
         log.info(" **************************************************************************************************");
 
+        setAddress(auctions);
+
+        auctionRepository.saveAll(auctions);
+        return auctions;
+    }
+
+    private void setAddress(List<Auction> auctions) {
         auctions.forEach(auction ->
                 auction.getAssets().forEach(auctionAsset -> {
                     if (auctionAsset.getAddress() == null || auctionAsset.getAddress().isEmpty()) return;
@@ -95,9 +117,6 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                     auctionAsset.setCoordinates(getLatLon(auctionAsset.getFullAddressWithIA()));
                 })
         );
-
-        auctionRepository.saveAll(auctions);
-        return auctions;
     }
 
 
