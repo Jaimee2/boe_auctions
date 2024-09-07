@@ -68,9 +68,8 @@ public enum Provinces {
 
     public static List<String> getAllCodes() {
         List<String> codes = new ArrayList<>();
-        for (Provinces provinces : Provinces.values()) {
+        for (Provinces provinces : Provinces.values())
             codes.add(provinces.getCode());
-        }
         return codes;
     }
 }

@@ -9,6 +9,7 @@ import com.example.boe_auction.auction_web_scraping.ollama.service.OllamaService
 import com.example.boe_auction.auction_web_scraping.service.AuctionWebScrapingService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -51,7 +52,7 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                 }).toList();
     }
 
-    private List<Auction> getAuctionsByProvinceCode(String provinceCode) throws IOException {
+    private List<Auction> getAuctionsByProvinceCode(String provinceCode) throws IOException, InterruptedException {
         log.info(" ------Scraping provinceCode: {} --------", provinceCode);
         String url = "https://subastas.boe.es/subastas_ava.php";
 
@@ -90,11 +91,17 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
 
         setAddress(auctions);
 
-        auctionRepository.saveAll(auctions);
+        List<List<Auction>> auctionBatches = ListUtils.partition(auctions, 100);
+        for (List<Auction> batch : auctionBatches) {
+            auctionRepository.saveAll(batch);
+            Thread.sleep(500);
+        }
+
         return auctions;
     }
 
     private void setAddress(List<Auction> auctions) {
+        if (auctions == null || auctions.isEmpty()) return;
         auctions.forEach(auction ->
                 auction.getAssets().forEach(auctionAsset -> {
                     if (auctionAsset.getAddress() == null || auctionAsset.getAddress().isEmpty()) return;
@@ -119,18 +126,74 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
         );
     }
 
-
     private Auction scrapeAuction(String url) {
         Document detailDoc = getDocument(url);
         Auction auction = getGeneralInformation(detailDoc);
 
         detailDoc.select("td:contains(Identificador) + td strong").text();
-        Elements linkElement = detailDoc.select("a[href*='ver=3']");
+        Elements linkElement = detailDoc.select("a[href*='ver=3']");//This get either Lotes url and bines url
         String auctionUrl = getLink(linkElement.attr("href"));
 
-        auction.setAssets(List.of(getGoods(auctionUrl)));
+        if (linkElement.text().contains("Bienes")) auction.setAssets(List.of(getGoods(auctionUrl)));
+        if (linkElement.text().contains("Lotes")) auction.setAssets(scrapeLots(auctionUrl));
 
         return auction;
+    }
+
+    private List<AuctionAsset> scrapeLots(String lotUrl) {
+        Document lotDocument = getDocument(lotUrl);
+        Elements lotLinks = lotDocument.select("ul.navlistver a[href*='idLote']");
+        List<AuctionAsset> lotAssets = new ArrayList<>();
+
+        lotLinks.forEach(lot -> {
+            String urlLot = getLink(lot.attr("href"));
+            log.info("Scraping lot URL: {}", urlLot);
+
+            Document lotDetailDoc = getDocument(urlLot);
+
+            // Dynamically select the correct lot block based on the pattern
+            Element lotBlock = lotDetailDoc.selectFirst("div[id^=idBloqueLote]");
+            if (lotBlock == null) {
+                log.warn("No lot block found for URL: {}", urlLot);
+                return;
+            }
+            AuctionAsset auctionAsset = extractLotDetails(lotBlock, urlLot);
+
+            lotAssets.add(auctionAsset);
+
+
+        });
+
+        return lotAssets;
+    }
+
+    private AuctionAsset extractLotDetails(Element lotBlock, String urlLot) {
+        Element lotTable = lotBlock.selectFirst("table");
+        Element assetTable = lotBlock.selectFirst("h4:contains(Bien) + table");
+        if (assetTable == null || lotTable == null) {
+            log.warn("Asset table not found for URL: {}", urlLot);
+            return null;
+        }
+        return AuctionAsset.builder()
+                .assetLink(urlLot)
+                .assetType(getAssetType(lotBlock.selectFirst("h4:contains(Bien)")))
+                .description(getTextFromTable(assetTable, "Descripción"))
+                .address(getTextFromTable(assetTable, "Dirección"))
+                .postalCode(getTextFromTable(assetTable, "Código Postal"))
+                .city(getTextFromTable(assetTable, "Localidad"))
+                .province(getTextFromTable(assetTable, "Provincia"))
+                .isPrimaryResidence(getTextFromTable(assetTable, "Vivienda habitual").equalsIgnoreCase("Sí"))
+                .possessionStatus(getTextFromTable(assetTable, "Situación posesoria"))
+                .isVisitable(getTextFromTable(assetTable, "Visitable"))
+                .encumbrances(getTextFromTable(assetTable, "Cargas"))
+                .registryDetails(getTextFromTable(assetTable, "Inscripción registral"))
+                .legalTitle(getTextFromTable(assetTable, "Título jurídico"))
+                .auctionValue(getTextFromTable(lotTable, "Valor Subasta"))
+                .appraisalValue(getTextFromTable(lotTable, "Valor de tasación"))
+                .minimumBid(getTextFromTable(lotTable, "Puja mínima"))
+                .bidIncrement(getTextFromTable(lotTable, "Tramos entre pujas"))
+                .depositAmount(getTextFromTable(lotTable, "Importe del depósito"))
+                .build();
     }
 
     private Document getDocument(String url) {
@@ -223,6 +286,15 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                 .registryDetails(getTextFromTable(assetTable, "Inscripción registral"))
                 .legalTitle(getTextFromTable(assetTable, "Título jurídico"))
                 .build();
+    }
+
+    private String getAssetType(Element assetHeading) {
+        if (assetHeading == null) return "Unknown";
+        String text = assetHeading.text(); // Example format: "Bien 1 - Inmueble (Local comercial)"
+        Pattern pattern = Pattern.compile("\\(([^)]+)\\)");
+        Matcher matcher = pattern.matcher(text);
+        if (matcher.find()) return matcher.group(1);
+        return "Unknown";
     }
 
     private static String getAssetType(Document detailDoc) {

@@ -15,8 +15,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.boe_auction.auction_web_scraping.utils.AuctionUtils.extractMultipleValues;
-
 @Slf4j
 @Component
 @AllArgsConstructor

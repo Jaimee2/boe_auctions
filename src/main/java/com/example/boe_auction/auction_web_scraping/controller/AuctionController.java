@@ -28,7 +28,6 @@ public class AuctionController {
             @RequestParam(required = false) String minAppraisalValue,
             @RequestParam(required = false) String maxAppraisalValue
     ) {
-
         return ResponseEntity.ok(auctionService.getAllAuctions(
                 auctionType, city, startDate, endDate, minimumBid,
                 minAppraisalValue, maxAppraisalValue, province, assetTypes));

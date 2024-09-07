@@ -27,4 +27,10 @@ public class AuctionAsset {
     private String registryDetails;
     private String legalTitle;
 
+    private String auctionValue;
+    private String appraisalValue;
+    private String minimumBid;
+    private String bidIncrement;
+    private String depositAmount;
+
 }
