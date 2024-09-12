@@ -1,3 +1,6 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
 name: Build and deploy Java project to Azure Function App - azure-function-boe-auction
 
 on:
@@ -7,9 +10,9 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_NAME: azure-function-boe-auction
-  PACKAGE_DIRECTORY: '.'
-  JAVA_VERSION: '17'
+  AZURE_FUNCTIONAPP_NAME: azure-function-boe-auction # set this to your function app name on Azure
+  PACKAGE_DIRECTORY: '.' # set this to the directory which contains pom.xml file
+  JAVA_VERSION: '17' # set this to the java version to use
 
 jobs:
   build-and-deploy:
@@ -23,14 +26,12 @@ jobs:
 
       - name: Setup Java Sdk ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v1
-        with:
+        with: |+
           java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'adopt'
-          cache: 'maven'
 
       - name: 'Restore Project Dependencies Using Mvn'
         shell: pwsh
-        run: |
+        run: |+
           pushd './${{ env.PACKAGE_DIRECTORY }}'
           mvn clean package
           popd
@@ -38,9 +39,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_E1FC8316B58540A1997EC9AAF8DD65ED }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_73E332764DD74AFCA617AC0246A9F544 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_2C33A94D292748B0BCA4B5C8753E42E4 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F423CFF8F4CB4882A735DE9F8B6913C1 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_45F141C84F504600AA6CA590CEA55F0A }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6184485B36874C87B5CF6A8CEFF3F810 }}
 
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
