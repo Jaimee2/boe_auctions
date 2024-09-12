@@ -48,7 +48,14 @@ public class AuctionRepositoryCustomImpl implements AuctionRepositoryCustom {
         if (maxAppraisalValue != null && !maxAppraisalValue.isEmpty()) {
             query.addCriteria(Criteria.where("appraisalValue").lte(maxAppraisalValue));
         }
-        log.info("Query use to find data in mongodb: {}",query);
+
+        query.fields()
+                .exclude("assets.description")
+                .exclude("assets.idufir")
+                .exclude("assets.registryDetails");
+
+        log.info("Query use to find data in mongodb: {}", query);
+
         return mongoTemplate.find(query, Auction.class);
     }
 }
