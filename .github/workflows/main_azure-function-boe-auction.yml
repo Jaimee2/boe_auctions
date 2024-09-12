@@ -28,10 +28,12 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'adopt'
+          cache: 'maven'
 
       - name: 'Restore Project Dependencies Using Mvn'
         shell: pwsh
-        run:
+        run: |
           pushd './${{ env.PACKAGE_DIRECTORY }}'
           mvn clean package
           popd
