@@ -85,9 +85,6 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                 .filter(auction -> !auctionRepository.existsById(getAuctionIdFromLink(auction)))
                 .forEach(auctionLink -> auctions.add(scrapeAuction(auctionLink)));
 
-        log.info(" ************************** Ended web scraping ****************************************************");
-        log.info("New auction: {}", auctions);
-        log.info(" **************************************************************************************************");
 
         setAddress(auctions);
 
