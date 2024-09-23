@@ -6,6 +6,7 @@ import com.example.boe_auction.auction_web_scraping.dao.document.Coordinates;
 import com.example.boe_auction.auction_web_scraping.dao.repository.AuctionRepository;
 import com.example.boe_auction.auction_web_scraping.enums.Provinces;
 import com.example.boe_auction.auction_web_scraping.ollama.service.OllamaService;
+import com.example.boe_auction.auction_web_scraping.restCalls.AzureGeocoding.GeoCodingAzureApi;
 import com.example.boe_auction.auction_web_scraping.service.AuctionWebScrapingService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
 
     private OllamaService ollamaService;
     private AuctionRepository auctionRepository;
+    private GeoCodingAzureApi geoCodingAzureApi;
 
     public List<Auction> performQuery() throws IOException {
 
@@ -80,8 +82,7 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
         document.select(".resultado-busqueda")
                 .stream()
                 .map(auctionElement -> getLink(auctionElement
-                        .selectFirst("a.resultado-busqueda-link-defecto").attr("href"))
-                )
+                        .selectFirst("a.resultado-busqueda-link-defecto").attr("href")))
                 .filter(auction -> !auctionRepository.existsById(getAuctionIdFromLink(auction)))
                 .forEach(auctionLink -> auctions.add(scrapeAuction(auctionLink)));
 
@@ -100,26 +101,36 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
     private void setAddress(List<Auction> auctions) {
         if (auctions == null || auctions.isEmpty()) return;
         auctions.forEach(auction ->
-                auction.getAssets().forEach(auctionAsset -> {
-                    if (auctionAsset.getAddress() == null || auctionAsset.getAddress().isEmpty()) return;
+                        auction.getAssets().forEach(auctionAsset -> {
+                            if (auctionAsset.getAddress() == null || auctionAsset.getAddress().isEmpty()) return;
 
-                    auctionAsset.setAddressIA(
-                            ollamaService.improveAddressForGeoDataApi(auctionAsset.getAddress())
-                    );
-                    auctionAsset.setFullAddressWithIA(String.format("%s, %s, %s",
-                            auctionAsset.getAddressIA(),
-                            auctionAsset.getPostalCode(),
-                            auctionAsset.getCity())
-                    );
+//                    auctionAsset.setAddressIA(
+//                            ollamaService.improveAddressForGeoDataApi(auctionAsset.getAddress())
+//                    );
+//
+//                    auctionAsset.setFullAddressWithIA(String.format("%s, %s, %s",
+//                            auctionAsset.getAddressIA(),
+//                            auctionAsset.getPostalCode(),
+//                            auctionAsset.getCity())
+//                    );
 
-                    auctionAsset.setFullAddress(String.format("%s, %s, %s",
-                            auctionAsset.getAddress(),
-                            auctionAsset.getPostalCode(),
-                            auctionAsset.getCity())
-                    );
+                            auctionAsset.setFullAddress(String.format("%s, %s, %s %s",
+                                    auctionAsset.getAddress(),
+                                    auctionAsset.getPostalCode(),
+                                    auctionAsset.getCity(),
+                                    "España")
+                            );
 
-                    auctionAsset.setCoordinates(getLatLon(auctionAsset.getFullAddressWithIA()));
-                })
+//                    auctionAsset.setCoordinates(getLatLonOpenStreetMap(auctionAsset.getFullAddressWithIA()));
+                            Coordinates coordinates =
+                                    geoCodingAzureApi.getLatLonAzureGeocodingApi(auctionAsset.getFullAddress());
+                            if (coordinates != null) {
+                                auctionAsset.setCoordinates(coordinates);
+                            } else {
+                                log.error("Error to find the coordinates of the Auction {}", auction);
+                            }
+
+                        })
         );
     }
 
@@ -307,7 +318,7 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
 
     }
 
-    public Coordinates getLatLon(String address) {
+    public Coordinates getLatLonOpenStreetMap(String address) {
 
         String url = "https://nominatim.openstreetmap.org/search";
 
@@ -331,7 +342,6 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
         } else {
             return null;
         }
-
     }
 
 }
