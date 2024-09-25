@@ -6,10 +6,7 @@ import java.util.List;
 
 public interface AuctionService {
 
-    List<Auction> getAllAuctions(
-            String auctionType, String city, String startDate, String endDate, String minimumBid,
-            String minAppraisalValue, String maxAppraisalValue, String province, List<String> assetType
-    );
+    List<Auction> getAllAuctions();
 
     void deleteAllAuctions();
 }

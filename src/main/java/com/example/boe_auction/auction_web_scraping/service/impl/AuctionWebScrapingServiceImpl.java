@@ -3,6 +3,7 @@ package com.example.boe_auction.auction_web_scraping.service.impl;
 import com.example.boe_auction.auction_web_scraping.dao.document.Auction;
 import com.example.boe_auction.auction_web_scraping.dao.document.AuctionAsset;
 import com.example.boe_auction.auction_web_scraping.dao.document.Coordinates;
+import com.example.boe_auction.auction_web_scraping.dao.repository.AuctionAssetRepository;
 import com.example.boe_auction.auction_web_scraping.dao.repository.AuctionRepository;
 import com.example.boe_auction.auction_web_scraping.enums.Provinces;
 import com.example.boe_auction.auction_web_scraping.ollama.service.OllamaService;
@@ -10,7 +11,6 @@ import com.example.boe_auction.auction_web_scraping.restcall.azure.geocoding.Geo
 import com.example.boe_auction.auction_web_scraping.service.AuctionWebScrapingService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.ListUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -38,6 +38,7 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
 
     private OllamaService ollamaService;
     private AuctionRepository auctionRepository;
+    private AuctionAssetRepository auctionAssetRepository;
     private GeoCodingAzureApi geoCodingAzureApi;
 
     public List<Auction> performQuery() throws IOException {
@@ -84,66 +85,77 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                 .map(auctionElement -> getLink(auctionElement
                         .selectFirst("a.resultado-busqueda-link-defecto").attr("href")))
                 .filter(auction -> !auctionRepository.existsById(getAuctionIdFromLink(auction)))
-                .forEach(auctionLink -> auctions.add(scrapeAuction(auctionLink)));
-
-
-        setAddress(auctions);
-
-        List<List<Auction>> auctionBatches = ListUtils.partition(auctions, 100);
-        for (List<Auction> batch : auctionBatches) {
-            auctionRepository.saveAll(batch);
-            Thread.sleep(500);
-        }
+                .forEach(auctionLink -> {
+                    try {
+                        auctions.add(scrapeAuction(auctionLink));
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
 
         return auctions;
     }
 
-    private void setAddress(List<Auction> auctions) {
-        if (auctions == null || auctions.isEmpty()) return;
-        auctions.forEach(auction ->
-                        auction.getAssets().forEach(auctionAsset -> {
-                            if (auctionAsset.getAddress() == null || auctionAsset.getAddress().isEmpty()) return;
+    private void setGeoLocation(AuctionAsset auctionAsset) {
+        if (auctionAsset.getAddress() == null || auctionAsset.getAddress().isEmpty()) return;
 
-//                    auctionAsset.setAddressIA(
-//                            ollamaService.improveAddressForGeoDataApi(auctionAsset.getAddress())
-//                    );
-//
-//                    auctionAsset.setFullAddressWithIA(String.format("%s, %s, %s",
-//                            auctionAsset.getAddressIA(),
-//                            auctionAsset.getPostalCode(),
-//                            auctionAsset.getCity())
-//                    );
-
-                            auctionAsset.setFullAddress(String.format("%s, %s, %s %s",
-                                    auctionAsset.getAddress(),
-                                    auctionAsset.getPostalCode(),
-                                    auctionAsset.getCity(),
-                                    "España")
-                            );
-
-//                    auctionAsset.setCoordinates(getLatLonOpenStreetMap(auctionAsset.getFullAddressWithIA()));
-                            Coordinates coordinates =
-                                    geoCodingAzureApi.getLatLonAzureGeocodingApi(auctionAsset.getFullAddress());
-                            if (coordinates != null) {
-                                auctionAsset.setCoordinates(coordinates);
-                            } else {
-                                log.error("Error to find the coordinates of the Auction {}", auction);
-                            }
-
-                        })
+        auctionAsset.setFullAddress(String.format("%s, %s, %s %s",
+                auctionAsset.getAddress(),
+                auctionAsset.getPostalCode(),
+                auctionAsset.getCity(),
+                "España")
         );
+
+        Coordinates coordinates =
+                geoCodingAzureApi.getLatLonAzureGeocodingApi(auctionAsset.getFullAddress());
+        if (coordinates != null) {
+            auctionAsset.setCoordinates(coordinates);
+        } else {
+            log.error("Error to find the coordinates of the auctionAsset: {}", auctionAsset);
+        }
+
     }
 
-    private Auction scrapeAuction(String url) {
+    private Auction scrapeAuction(String url) throws InterruptedException {
         Document detailDoc = getDocument(url);
         Auction auction = getGeneralInformation(detailDoc);
 
+        auctionRepository.save(auction);
+        Thread.sleep(100);
+
         detailDoc.select("td:contains(Identificador) + td strong").text();
-        Elements linkElement = detailDoc.select("a[href*='ver=3']");//This get either Lotes url and bines url
+        Elements linkElement = detailDoc.select("a[href*='ver=3']"); //This get either Lotes url and bines url
         String auctionUrl = getLink(linkElement.attr("href"));
 
-        if (linkElement.text().contains("Bienes")) auction.setAssets(List.of(getGoods(auctionUrl)));
-        if (linkElement.text().contains("Lotes")) auction.setAssets(scrapeLots(auctionUrl));
+        if (linkElement.text().contains("Bienes")) {
+            AuctionAsset auctionAsset = getGoods(auctionUrl);
+
+            auctionAsset.setAuctionId(auction.getIdentifier());
+            auctionAsset.setStartDate(auction.getStartDate());
+            auctionAsset.setEndDate(auction.getEndDate());
+            auctionAsset.setAuctionValue(auction.getAuctionValue());
+            auctionAsset.setAppraisalValue(auction.getAppraisalValue());
+            auctionAsset.setMinimumBid(auction.getMinimumBid());
+            auctionAsset.setDepositAmount(auction.getDepositAmount());
+            auctionAsset.setBidIncrement(auction.getBidIncrement());
+
+            setGeoLocation(auctionAsset);
+
+            auctionAssetRepository.save(auctionAsset);
+        }
+
+        if (linkElement.text().contains("Lotes")) {
+            List<AuctionAsset> auctionAssets = scrapeLots(auctionUrl);
+
+            auctionAssets.forEach(auctionAsset -> {
+                auctionAsset.setAuctionId(auction.getIdentifier());
+                auctionAsset.setStartDate(auction.getStartDate());
+                auctionAsset.setEndDate(auction.getEndDate());
+                setGeoLocation(auctionAsset);
+            });
+
+            auctionAssetRepository.saveAll(auctionAssets);
+        }
 
         return auction;
     }

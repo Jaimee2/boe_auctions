@@ -8,29 +8,17 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin
 @RestController
 @AllArgsConstructor
 @RequestMapping("/auction")
-@CrossOrigin
 public class AuctionController {
 
     private AuctionService auctionService;
 
     @GetMapping
-    public ResponseEntity<List<Auction>> getAllAuctions(
-            @RequestParam(required = false) String auctionType,
-            @RequestParam(required = false) List<String> assetTypes,
-            @RequestParam(required = false) String city,
-            @RequestParam(required = false) String province,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate,
-            @RequestParam(required = false) String minimumBid,
-            @RequestParam(required = false) String minAppraisalValue,
-            @RequestParam(required = false) String maxAppraisalValue
-    ) {
-        return ResponseEntity.ok(auctionService.getAllAuctions(
-                auctionType, city, startDate, endDate, minimumBid,
-                minAppraisalValue, maxAppraisalValue, province, assetTypes));
+    public ResponseEntity<List<Auction>> getAllAuctions() {
+        return ResponseEntity.ok(auctionService.getAllAuctions());
     }
 
     @DeleteMapping

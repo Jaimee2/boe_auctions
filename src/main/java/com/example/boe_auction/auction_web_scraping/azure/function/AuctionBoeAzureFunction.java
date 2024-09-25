@@ -1,5 +1,6 @@
 package com.example.boe_auction.auction_web_scraping.azure.function;
 
+import com.example.boe_auction.auction_web_scraping.service.AssetService;
 import com.example.boe_auction.auction_web_scraping.service.AuctionService;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
@@ -21,6 +22,7 @@ import java.util.Optional;
 public class AuctionBoeAzureFunction {
 
     private AuctionService auctionService;
+    private AssetService assetService;
 
     @FunctionName("hello")
     public HttpResponseMessage hello(
@@ -40,18 +42,18 @@ public class AuctionBoeAzureFunction {
                 .build();
     }
 
-    @FunctionName("getAllAuctions")
-    public HttpResponseMessage getAllAuctions(
+    @FunctionName("getAllAssetMainMap")
+    public HttpResponseMessage getAllAssetMainMap(
             @HttpTrigger(name = "req",
                     methods = {HttpMethod.GET},
                     authLevel = AuthorizationLevel.ANONYMOUS,
-                    route = "auctions"
+                    route = "asset/map-filter"
             ) HttpRequestMessage<Optional<String>> request,
             ExecutionContext context) {
         log.info(context.toString());
-        log.info("Received request to getAllAuctions");
+        log.info("Received request to getAllAssetMainMap");
 
-        String auctionType = request.getQueryParameters().getOrDefault("auctionType", null);
+//        String auctionType = request.getQueryParameters().getOrDefault("auctionType", null);
 
         String city = request.getQueryParameters().getOrDefault("city", null);
         String province = request.getQueryParameters().getOrDefault("province", null);
@@ -66,16 +68,9 @@ public class AuctionBoeAzureFunction {
 
         return request.createResponseBuilder(HttpStatus.OK)
                 .header("Content-Type", "application/json")
-                .body(auctionService.getAllAuctions(
-                        auctionType, city, startDate, endDate, minimumBid,
-                        minAppraisalValue, maxAppraisalValue, province, assetTypes
-                ))
+                .body(assetService.getAllAssetForMap(city, startDate, endDate, minimumBid,
+                        minAppraisalValue, maxAppraisalValue, province, assetTypes))
                 .build();
-    }
-
-    @PostConstruct
-    void hello() {
-        log.info(" HELLO ---> AuctionBoeAzureFunction");
     }
 
     private List<String> extractMultipleValues(String queryString) {
@@ -84,8 +79,13 @@ public class AuctionBoeAzureFunction {
         String[] params = queryString.split("&");
         for (String param : params) {
             String[] keyValue = param.split("=");
-            if (keyValue.length == 2 && keyValue[0].equals("assetType")) values.add(keyValue[1]);
+            if (keyValue.length == 2 && keyValue[0].equals("assetTypes")) values.add(keyValue[1]);
         }
         return values;
+    }
+
+    @PostConstruct
+    void hello() {
+        log.info(" HELLO ---> AuctionBoeAzureFunction");
     }
 }

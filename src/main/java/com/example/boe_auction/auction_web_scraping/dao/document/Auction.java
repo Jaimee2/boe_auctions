@@ -6,8 +6,6 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.List;
-
 @Data
 @Builder
 @Document
@@ -22,6 +20,7 @@ public class Auction {
     private String endDate;
     private String lots;
     private String announcementBOE;
+
     private String auctionValue;
     private String appraisalValue;
     private String minimumBid;
@@ -29,6 +28,5 @@ public class Auction {
     private String depositAmount;
 
     private ManagingAuthority managingAuthority;
-    private List<AuctionAsset> assets;
 
 }
