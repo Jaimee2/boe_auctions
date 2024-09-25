@@ -6,7 +6,7 @@ import com.example.boe_auction.auction_web_scraping.dao.document.Coordinates;
 import com.example.boe_auction.auction_web_scraping.dao.repository.AuctionRepository;
 import com.example.boe_auction.auction_web_scraping.enums.Provinces;
 import com.example.boe_auction.auction_web_scraping.ollama.service.OllamaService;
-import com.example.boe_auction.auction_web_scraping.restCalls.AzureGeocoding.GeoCodingAzureApi;
+import com.example.boe_auction.auction_web_scraping.restcall.azure.geocoding.GeoCodingAzureApi;
 import com.example.boe_auction.auction_web_scraping.service.AuctionWebScrapingService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

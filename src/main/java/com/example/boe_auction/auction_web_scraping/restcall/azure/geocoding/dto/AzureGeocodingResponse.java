@@ -1,4 +1,4 @@
-package com.example.boe_auction.auction_web_scraping.restCalls.AzureGeocoding.dto;
+package com.example.boe_auction.auction_web_scraping.restcall.azure.geocoding.dto;
 
 import lombok.Data;
 

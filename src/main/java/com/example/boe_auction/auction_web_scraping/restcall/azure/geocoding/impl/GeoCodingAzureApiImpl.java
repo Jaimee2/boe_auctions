@@ -1,8 +1,8 @@
-package com.example.boe_auction.auction_web_scraping.restCalls.AzureGeocoding.impl;
+package com.example.boe_auction.auction_web_scraping.restcall.azure.geocoding.impl;
 
 import com.example.boe_auction.auction_web_scraping.dao.document.Coordinates;
-import com.example.boe_auction.auction_web_scraping.restCalls.AzureGeocoding.GeoCodingAzureApi;
-import com.example.boe_auction.auction_web_scraping.restCalls.AzureGeocoding.dto.AzureGeocodingResponse;
+import com.example.boe_auction.auction_web_scraping.restcall.azure.geocoding.GeoCodingAzureApi;
+import com.example.boe_auction.auction_web_scraping.restcall.azure.geocoding.dto.AzureGeocodingResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
