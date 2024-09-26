@@ -54,11 +54,13 @@ public class AssetRepositoryCustomImpl implements AssetRepositoryCustom {
                 .exclude("postalCode")
                 .exclude("city")
                 .exclude("province")
-
                 .exclude("registryDetails");
 
         log.info("Query use to find data in mongodb: {}", query);
 
-        return mongoTemplate.find(query, AuctionAsset.class);
+        List<AuctionAsset> auctionAssetList = mongoTemplate.find(query, AuctionAsset.class);
+
+        log.info("Number of assets fetched: {}", auctionAssetList.size());
+        return auctionAssetList;
     }
 }

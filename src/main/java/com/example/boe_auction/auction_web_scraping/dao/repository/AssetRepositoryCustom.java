@@ -9,6 +9,7 @@ public interface AssetRepositoryCustom {
     List<AuctionAsset> findAssetBy(
             String city, String startDate, String endDate,
             String minimumBid, String minAppraisalValue, String maxAppraisalValue, String province,
-            List<String> assetTypes);
+            List<String> assetTypes
+    );
 
 }
