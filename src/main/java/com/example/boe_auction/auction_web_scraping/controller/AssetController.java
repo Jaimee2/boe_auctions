@@ -1,6 +1,7 @@
 package com.example.boe_auction.auction_web_scraping.controller;
 
 import com.example.boe_auction.auction_web_scraping.dao.document.AuctionAsset;
+import com.example.boe_auction.auction_web_scraping.dto.AssetMapInitDto;
 import com.example.boe_auction.auction_web_scraping.service.AssetService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class AssetController {
     }
 
     @GetMapping("/map-filter")
-    public ResponseEntity<List<AuctionAsset>> getAllAssetForMap(
+    public ResponseEntity<List<AssetMapInitDto>> getAllAssetForMap(
             @RequestParam(required = false) List<String> assetTypes,
             @RequestParam(required = false) String city,
             @RequestParam(required = false) String province,

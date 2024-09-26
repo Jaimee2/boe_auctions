@@ -49,6 +49,12 @@ public class AssetRepositoryCustomImpl implements AssetRepositoryCustom {
         query.fields()
                 .exclude("description")
                 .exclude("idufir")
+                .exclude("address")
+                .exclude("fullAddress")
+                .exclude("postalCode")
+                .exclude("city")
+                .exclude("province")
+
                 .exclude("registryDetails");
 
         log.info("Query use to find data in mongodb: {}", query);
