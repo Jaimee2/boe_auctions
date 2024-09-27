@@ -24,12 +24,13 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static ch.qos.logback.core.util.StringUtil.isNullOrEmpty;
 
 @Slf4j
 @Service
@@ -208,11 +209,11 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                 .encumbrances(getTextFromTable(assetTable, "Cargas"))
                 .registryDetails(getTextFromTable(assetTable, "Inscripción registral"))
                 .legalTitle(getTextFromTable(assetTable, "Título jurídico"))
-                .auctionValue(getTextFromTable(lotTable, "Valor Subasta"))
-                .appraisalValue(getTextFromTable(lotTable, "Valor de tasación"))
-                .minimumBid(getTextFromTable(lotTable, "Puja mínima"))
-                .bidIncrement(getTextFromTable(lotTable, "Tramos entre pujas"))
-                .depositAmount(getTextFromTable(lotTable, "Importe del depósito"))
+                .auctionValue(stringCurrencyNumberToDouble(getTextFromTable(lotTable, "Valor Subasta")))
+                .appraisalValue(stringCurrencyNumberToDouble(getTextFromTable(lotTable, "Valor de tasación")))
+                .minimumBid(stringCurrencyNumberToDouble(getTextFromTable(lotTable, "Puja mínima")))
+                .bidIncrement(stringCurrencyNumberToDouble(getTextFromTable(lotTable, "Tramos entre pujas")))
+                .depositAmount(stringCurrencyNumberToDouble(getTextFromTable(lotTable, "Importe del depósito")))
                 .build();
     }
 
@@ -230,20 +231,43 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
     private Auction getGeneralInformation(Document detailDoc) {
         Element dataTable = detailDoc.getElementById("idBloqueDatos1").selectFirst("table tbody");
         assert dataTable != null;
+
+        stringCurrencyNumberToDouble(getTextFromTable(dataTable, "Valor subasta"));
+
         return Auction.builder()
                 .identifier(getTextFromTable(dataTable, "Identificador"))
                 .auctionType(getTextFromTable(dataTable, "Tipo de subasta"))
                 .startDate((getTextFromTable(dataTable, "Fecha de inicio").split("\\(ISO")[0].trim()))
                 .endDate((getTextFromTable(dataTable, "Fecha de conclusión").split("\\(ISO")[0].trim()))
                 .lots((getTextFromTable(dataTable, "Lotes")))
-                .announcementBOE((getTextFromTable(dataTable, "Lotes")))
-                .auctionValue(getTextFromTable(dataTable, "Anuncio BOE"))
-                .appraisalValue(getTextFromTable(dataTable, "Valor subasta"))
-                .minimumBid(getTextFromTable(dataTable, "Puja mínima"))
-                .bidIncrement(getTextFromTable(dataTable, "Tramos entre pujas"))
-                .depositAmount(getTextFromTable(dataTable, "Importe del depósito"))
+                .announcementBOE((getTextFromTable(dataTable, "Anuncio BOE")))
+                .auctionValue(stringCurrencyNumberToDouble(getTextFromTable(dataTable, "Valor subasta")))
+                .appraisalValue(stringCurrencyNumberToDouble(getTextFromTable(dataTable, "Tasación")))
+                .minimumBid(stringCurrencyNumberToDouble(getTextFromTable(dataTable, "Puja mínima")))
+                .bidIncrement(stringCurrencyNumberToDouble(getTextFromTable(dataTable, "Tramos entre pujas")))
+                .depositAmount(stringCurrencyNumberToDouble(getTextFromTable(dataTable, "Importe del depósito")))
                 .build();
 
+    }
+
+    private float stringCurrencyNumberToDouble(String currencyNumber) {
+        if (isNullOrEmpty(currencyNumber)) {
+            log.error("Error currencyNumber is null or empty!");
+            return 0f;
+        }
+
+        String value = currencyNumber.replaceAll("€", "");
+        NumberFormat format = NumberFormat.getInstance(new Locale("es", "ES"));
+        Number number = null;
+        try {
+            number = format.parse(value);
+        } catch (ParseException e) {
+            return 0f;
+        }
+
+        float doubleValue = number.floatValue();
+        System.out.println("Parsed double value: " + doubleValue);
+        return doubleValue;
     }
 
     private String getTextFromTable(Element table, String headerText) {
