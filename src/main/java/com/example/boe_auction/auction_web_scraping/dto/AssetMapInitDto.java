@@ -18,10 +18,10 @@ public class AssetMapInitDto {
     private String possessionStatus;
     private String encumbrances;
 
-    private String auctionValue;
-    private String appraisalValue;
-    private String minimumBid;
-    private String bidIncrement;
-    private String depositAmount;
+    private float auctionValue;
+    private float appraisalValue;
+    private float minimumBid;
+    private float bidIncrement;
+    private float depositAmount;
 
 }
