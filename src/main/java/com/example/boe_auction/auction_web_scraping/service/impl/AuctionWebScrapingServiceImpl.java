@@ -189,7 +189,9 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
     }
 
     private AuctionAsset extractLotDetails(Element lotBlock, String urlLot) {
+        urlLot = urlLot.replaceAll("&idBus=[^&]*", "");
         Element lotTable = lotBlock.selectFirst("table");
+
         Element assetTable = lotBlock.selectFirst("h4:contains(Bien) + table");
         if (assetTable == null || lotTable == null) {
             log.warn("Asset table not found for URL: {}", urlLot);
@@ -308,6 +310,7 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
     }
 
     private AuctionAsset getGoods(String url) {
+        url = url.replaceAll("&idBus=[^&]*", "");
         Document detailDoc = getDocument(url);
         Element assetTable = detailDoc.selectFirst("#idBloqueDatos3 .bloque table");
         assert assetTable != null;
