@@ -16,20 +16,17 @@ env:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write #This is required for requesting the JWT
-
+    runs-on: windows-latest
+    
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4
 
       - name: Setup Java Sdk ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'adopt'
-          cache: 'maven'
+          distribution: 'microsoft'
 
       - name: 'Restore Project Dependencies Using Mvn'
         shell: pwsh
@@ -38,13 +35,6 @@ jobs:
           mvn clean package
           popd
       
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F423CFF8F4CB4882A735DE9F8B6913C1 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_45F141C84F504600AA6CA590CEA55F0A }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6184485B36874C87B5CF6A8CEFF3F810 }}
-
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
         id: fa
@@ -53,4 +43,4 @@ jobs:
           slot-name: 'Production'
           package: '${{ env.PACKAGE_DIRECTORY }}'
           respect-pom-xml: true
-          
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6533868B953247C6BEDA7CD9913AFA9A }}
