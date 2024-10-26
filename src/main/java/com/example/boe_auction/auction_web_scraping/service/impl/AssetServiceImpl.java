@@ -7,8 +7,10 @@ import com.example.boe_auction.auction_web_scraping.mapper.AuctionAssetMapper;
 import com.example.boe_auction.auction_web_scraping.service.AssetService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -33,6 +35,27 @@ public class AssetServiceImpl implements AssetService {
                         city, startDate, endDate, minimumBid,
                         minAppraisalValue, maxAppraisalValue, province, assetTypes)
         );
+    }
+
+    @Override
+    public void deleteOldAsset() throws InterruptedException {
+        Date now = new Date();
+        int batchSize = 50; // Define a suitable batch size
+        int totalDeleted = 0;
+
+        List<AuctionAsset> auctionAssetList;
+        do {
+            auctionAssetList = auctionAssetRepository.findTopByEndDateBefore(now, PageRequest.of(0, batchSize));
+            Thread.sleep(1000);
+
+            auctionAssetRepository.deleteAll(auctionAssetList);
+            totalDeleted += auctionAssetList.size();
+            Thread.sleep(1000);
+
+        } while (!auctionAssetList.isEmpty());
+
+        log.info("Number of auctions deleted: {}", totalDeleted);
+
     }
 
 }

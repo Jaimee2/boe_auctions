@@ -12,4 +12,6 @@ public interface AssetService {
                                             String minAppraisalValue, String maxAppraisalValue, String province,
                                             List<String> assetTypes
     );
+
+    void deleteOldAsset() throws InterruptedException;
 }

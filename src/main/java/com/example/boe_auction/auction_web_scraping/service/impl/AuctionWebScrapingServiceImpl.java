@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.*;
@@ -31,6 +32,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static ch.qos.logback.core.util.StringUtil.isNullOrEmpty;
+import static com.example.boe_auction.auction_web_scraping.utils.AuctionUtils.convertStringToDate;
+
 
 @Slf4j
 @Service
@@ -155,6 +158,15 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
                 setGeoLocation(auctionAsset);
             });
 
+            // Save in batches
+            if (auctionAssets.size() > 399) {
+                for (int i = 0; i < auctionAssets.size(); i += 399) {
+                    int end = Math.min(i + 399, auctionAssets.size());
+                    List<AuctionAsset> batch = auctionAssets.subList(i, end);
+                    auctionAssetRepository.saveAll(batch);
+                    Thread.sleep(1000);
+                }
+            }
             auctionAssetRepository.saveAll(auctionAssets);
         }
 
@@ -239,8 +251,8 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
         return Auction.builder()
                 .identifier(getTextFromTable(dataTable, "Identificador"))
                 .auctionType(getTextFromTable(dataTable, "Tipo de subasta"))
-                .startDate((getTextFromTable(dataTable, "Fecha de inicio").split("\\(ISO")[0].trim()))
-                .endDate((getTextFromTable(dataTable, "Fecha de conclusión").split("\\(ISO")[0].trim()))
+                .startDate(convertStringToDate((getTextFromTable(dataTable, "Fecha de inicio").split("\\(ISO")[0].trim())))
+                .endDate(convertStringToDate((getTextFromTable(dataTable, "Fecha de conclusión").split("\\(ISO")[0].trim())))
                 .lots((getTextFromTable(dataTable, "Lotes")))
                 .announcementBOE((getTextFromTable(dataTable, "Anuncio BOE")))
                 .auctionValue(stringCurrencyNumberToDouble(getTextFromTable(dataTable, "Valor subasta")))
@@ -296,8 +308,8 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
             String[] pairs = query.split("&");
             for (String pair : pairs) {
                 int idx = pair.indexOf("=");
-                String key = URLDecoder.decode(pair.substring(0, idx), "UTF-8");
-                String value = URLDecoder.decode(pair.substring(idx + 1), "UTF-8");
+                String key = URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8);
+                String value = URLDecoder.decode(pair.substring(idx + 1), StandardCharsets.UTF_8);
                 queryPairs.put(key, value);
             }
 

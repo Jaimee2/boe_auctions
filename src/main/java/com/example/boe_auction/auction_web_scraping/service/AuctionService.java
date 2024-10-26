@@ -9,4 +9,6 @@ public interface AuctionService {
     List<Auction> getAllAuctions();
 
     void deleteAllAuctions();
+
+    void deleteOldAuctions() throws InterruptedException;
 }

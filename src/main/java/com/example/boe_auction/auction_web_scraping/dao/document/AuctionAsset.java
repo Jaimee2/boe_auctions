@@ -5,6 +5,8 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
+
 @Data
 @Builder
 @Document
@@ -15,8 +17,8 @@ public class AuctionAsset {
 
     private String auctionId;
 
-    private String startDate;
-    private String endDate;
+    private Date startDate;
+    private Date endDate;
     private String assetLink;
     private String assetType;
     private String description;

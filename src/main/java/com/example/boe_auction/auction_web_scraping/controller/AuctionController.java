@@ -27,4 +27,10 @@ public class AuctionController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/old")
+    public ResponseEntity<String> deleteOldAuctions() throws InterruptedException {
+        auctionService.deleteOldAuctions();
+        return ResponseEntity.ok("Old auctions deleted successfully");
+    }
+
 }

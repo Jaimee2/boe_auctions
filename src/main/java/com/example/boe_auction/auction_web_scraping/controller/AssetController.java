@@ -37,4 +37,10 @@ public class AssetController {
                 minAppraisalValue, maxAppraisalValue, province, assetTypes));
     }
 
+    @DeleteMapping("/old")
+    public ResponseEntity<String> deleteOldAuctions() throws InterruptedException {
+        assetService.deleteOldAsset();
+        return ResponseEntity.ok("Old auctions deleted successfully");
+    }
+
 }

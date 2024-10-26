@@ -6,6 +6,7 @@ import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
+import com.microsoft.azure.functions.annotation.TimerTrigger;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -87,5 +88,23 @@ public class AuctionBoeAzureFunction {
     @PostConstruct
     void hello() {
         log.info(" HELLO ---> AuctionBoeAzureFunction");
+    }
+
+    @FunctionName("deleteOldAuctionsFunction")
+    public void deleteOldAuctionsFunction(
+            @TimerTrigger(
+                    name = "deleteOldAuctionsTrigger",
+                    schedule = "0 0 2 * * *"
+            )
+            String timerInfo,
+            ExecutionContext context) {
+        log.info("Timer trigger function executed at: {}", java.time.LocalDateTime.now());
+        try {
+            auctionService.deleteOldAuctions();
+            assetService.deleteOldAsset();
+            log.info("Old auctions deletion completed successfully.");
+        } catch (Exception e) {
+            log.error("Error occurred while deleting old auctions: ", e);
+        }
     }
 }
