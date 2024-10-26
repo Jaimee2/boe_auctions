@@ -146,6 +146,7 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
             setGeoLocation(auctionAsset);
 
             auctionAssetRepository.save(auctionAsset);
+
         }
 
         if (linkElement.text().contains("Lotes")) {
@@ -159,18 +160,17 @@ public class AuctionWebScrapingServiceImpl implements AuctionWebScrapingService 
             });
 
             // Save in batches
-            if (auctionAssets.size() > 399) {
-                for (int i = 0; i < auctionAssets.size(); i += 399) {
-                    int end = Math.min(i + 399, auctionAssets.size());
-                    List<AuctionAsset> batch = auctionAssets.subList(i, end);
-                    auctionAssetRepository.saveAll(batch);
-                    Thread.sleep(1000);
-                }
-            }
-            auctionAssetRepository.saveAll(auctionAssets);
-        }
 
+            for (int i = 0; i < auctionAssets.size(); i += 50) {
+                int end = Math.min(i + 50, auctionAssets.size());
+                List<AuctionAsset> batch = auctionAssets.subList(i, end);
+                auctionAssetRepository.saveAll(batch);
+                Thread.sleep(1000);
+            }
+
+        }
         return auction;
+
     }
 
     private List<AuctionAsset> scrapeLots(String lotUrl) {
