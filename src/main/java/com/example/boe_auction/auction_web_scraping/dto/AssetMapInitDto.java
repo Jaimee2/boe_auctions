@@ -3,15 +3,15 @@ package com.example.boe_auction.auction_web_scraping.dto;
 import com.example.boe_auction.auction_web_scraping.dao.document.Coordinates;
 import lombok.Data;
 
-import java.time.ZonedDateTime;
+import java.util.Date;
 
 @Data
 public class AssetMapInitDto {
 
     private String auctionId;
 
-    private ZonedDateTime startDate;
-    private ZonedDateTime endDate;
+    private Date startDate;
+    private Date endDate;
 
     private String assetLink;
     private String assetType;
